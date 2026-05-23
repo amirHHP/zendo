@@ -15,6 +15,8 @@ const projectsTree = document.getElementById('projects-tree');
 const inputNewProject = document.getElementById('input-new-project');
 const currentViewTitle = document.getElementById('current-view-title');
 const taskList = document.getElementById('task-list');
+const btnElaborateInbox = document.getElementById('btn-elaborate-inbox');
+const btnOrganizeInbox = document.getElementById('btn-organize-inbox');
 
 // Details Panel Elements
 const detailsPanel = document.getElementById('details-panel');
@@ -324,9 +326,19 @@ function renderTasks() {
   // Set View Title
   if (activeView === 'inbox') {
     currentViewTitle.textContent = 'Inbox';
+    const inboxCount = tasks.filter(t => !t.projectId && !t.completed).length;
+    if (inboxCount > 0) {
+      btnElaborateInbox.classList.remove('hidden');
+      btnOrganizeInbox.classList.remove('hidden');
+    } else {
+      btnElaborateInbox.classList.add('hidden');
+      btnOrganizeInbox.classList.add('hidden');
+    }
   } else {
     const proj = projects.find(p => p.id === activeView);
     currentViewTitle.textContent = proj ? proj.name : 'Unknown Project';
+    btnElaborateInbox.classList.add('hidden');
+    btnOrganizeInbox.classList.add('hidden');
   }
 
   // Filter Tasks
@@ -388,22 +400,6 @@ function renderTasks() {
     const actionsDiv = document.createElement('div');
     actionsDiv.className = 'task-actions';
 
-    const btnElab = document.createElement('button');
-    btnElab.className = 'text-button';
-    btnElab.textContent = 'Elaborate';
-    btnElab.addEventListener('click', (e) => {
-      e.stopPropagation();
-      elaborateTask(task.id, btnElab);
-    });
-
-    const btnOrg = document.createElement('button');
-    btnOrg.className = 'text-button';
-    btnOrg.textContent = 'Organize';
-    btnOrg.addEventListener('click', (e) => {
-      e.stopPropagation();
-      organizeTask(task.id, btnOrg);
-    });
-
     const btnDel = document.createElement('button');
     btnDel.className = 'text-button danger';
     btnDel.textContent = 'Delete';
@@ -417,8 +413,6 @@ function renderTasks() {
       renderApp();
     });
 
-    actionsDiv.appendChild(btnElab);
-    actionsDiv.appendChild(btnOrg);
     actionsDiv.appendChild(btnDel);
 
     mainRow.appendChild(cbContainer);
@@ -642,6 +636,15 @@ function initEventListeners() {
     hideSettings();
     alert('Settings saved.');
   });
+
+  // Bulk actions
+  btnElaborateInbox.addEventListener('click', () => {
+    elaborateInbox();
+  });
+
+  btnOrganizeInbox.addEventListener('click', () => {
+    organizeInbox();
+  });
 }
 
 function showSettings() {
@@ -831,5 +834,256 @@ Do not include any Markdown syntax or extra text. Return ONLY the JSON object.`;
   } finally {
     btnEl.textContent = originalText;
     btnEl.disabled = false;
+  }
+}
+
+// AI: Elaborate All Inbox Tasks
+async function elaborateInbox() {
+  if (!apiKey) {
+    alert('Please set your Gemini API Key in Settings first.');
+    showSettings();
+    return;
+  }
+
+  // Get all uncompleted tasks in Inbox
+  const inboxTasks = tasks.filter(t => !t.projectId && !t.completed);
+  if (inboxTasks.length === 0) return;
+
+  const originalElabText = btnElaborateInbox.textContent;
+  btnElaborateInbox.textContent = 'Elaborating...';
+  btnElaborateInbox.disabled = true;
+  btnOrganizeInbox.disabled = true;
+
+  const prompt = `You are an expert GTD (Getting Things Done) coach and personal assistant.
+The user has a list of tasks in their Inbox:
+${JSON.stringify(inboxTasks.map(t => ({ id: t.id, text: t.text })))}
+
+Your goal is to elaborate each of these tasks, make them highly actionable, add detailed notes/context, and break them down into clear, small, sequential subtasks (to remove friction and procrastination).
+Each elaborated task title should be concise (under 80 characters) and in the same language as the task (e.g. Persian/English).
+
+You must output your response in JSON format matching this schema:
+{
+  "tasks": [
+    {
+      "id": "original-task-uuid",
+      "elaboratedText": "Actionable, clear rewrite of the task title",
+      "notes": "Detailed context, tips, and next steps for the task",
+      "subtasks": ["subtask 1", "subtask 2", ...]
+    },
+    ...
+  ]
+}
+
+Do not include any Markdown syntax, code block formatting (like \`\`\`json), or extra text. Return ONLY the JSON object.`;
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json' }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const textResponse = data.candidates[0].content.parts[0].text;
+    const result = parseGeminiJSON(textResponse);
+
+    if (result && result.tasks && Array.isArray(result.tasks)) {
+      result.tasks.forEach(resTask => {
+        const task = tasks.find(t => t.id === resTask.id);
+        if (task) {
+          task.text = resTask.elaboratedText || task.text;
+          task.notes = (task.notes ? task.notes + '\n\n' : '') + (resTask.notes || '');
+
+          if (resTask.subtasks && Array.isArray(resTask.subtasks)) {
+            if (!task.subtasks) task.subtasks = [];
+            resTask.subtasks.forEach(stText => {
+              task.subtasks.push({
+                id: crypto.randomUUID(),
+                text: stText,
+                completed: false
+              });
+            });
+          }
+        }
+      });
+    }
+
+    await saveState();
+    renderApp();
+  } catch (err) {
+    console.error('Elaboration failed:', err);
+    alert('Elaboration failed. Please verify your API key or network connection.');
+  } finally {
+    btnElaborateInbox.textContent = originalElabText;
+    btnElaborateInbox.disabled = false;
+    btnOrganizeInbox.disabled = false;
+  }
+}
+
+// AI: Organize All Inbox Tasks
+async function organizeInbox() {
+  if (!apiKey) {
+    alert('Please set your Gemini API Key in Settings first.');
+    showSettings();
+    return;
+  }
+
+  // Get all uncompleted tasks in Inbox
+  const inboxTasks = tasks.filter(t => !t.projectId && !t.completed);
+  if (inboxTasks.length === 0) return;
+
+  const originalOrgText = btnOrganizeInbox.textContent;
+  btnOrganizeInbox.textContent = 'Organizing...';
+  btnElaborateInbox.disabled = true;
+  btnOrganizeInbox.disabled = true;
+
+  // Create clean flat representation of projects for prompt
+  const simplifiedProjects = projects.map(p => ({
+    id: p.id,
+    name: p.name,
+    parentId: p.parentId
+  }));
+
+  const prompt = `You are an expert GTD (Getting Things Done) organization engine and coach.
+The user has a list of tasks in their Inbox:
+${JSON.stringify(inboxTasks.map(t => ({ id: t.id, text: t.text })))}
+
+Here is the list of existing projects:
+${JSON.stringify(simplifiedProjects)}
+
+Your goal is to perform TWO steps for EACH task in the Inbox:
+1. Clarify/Elaborate: Rewrite the task title/text to make it highly actionable and clear, add detailed notes/context, and break it down into clear, small, sequential subtasks. Keep each rewritten task title concise (under 80 characters) and in the same language as the task.
+2. Organize: Decide where the task belongs.
+   - If it fits under one of the existing projects, select the most appropriate existing project's ID.
+   - If it does not fit any existing project, decide if a new project should be created. If so, specify the new project's name. (You can also decide if this new project should be nested as a sub-project under an existing project, in which case specify the parent project ID).
+   - If it does not belong in any project, set projectId to null.
+
+You must output your response in JSON format matching this schema:
+{
+  "tasks": [
+    {
+      "id": "original-task-uuid",
+      "elaboratedText": "Actionable, clear rewrite of the task title",
+      "notes": "Detailed context, tips, and next steps for the task",
+      "subtasks": ["subtask 1", "subtask 2", ...],
+      "projectId": "existing-project-uuid" (or "new" if a new project should be created, or null if it should remain in the Inbox),
+      "newProjectName": "Name of the new project to create (only if projectId is 'new', in the same language as the task)",
+      "newProjectParentId": "existing-project-uuid" (if the new project should be nested under an existing project, otherwise null)
+    },
+    ...
+  ]
+}
+
+Do not include any Markdown syntax, code block formatting (like \`\`\`json), or extra text. Return ONLY the JSON object.`;
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json' }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const textResponse = data.candidates[0].content.parts[0].text;
+    const result = parseGeminiJSON(textResponse);
+
+    if (result && result.tasks && Array.isArray(result.tasks)) {
+      // Helper function to find project by name and parentId
+      const findProjectByName = (name, parentId = null) => {
+        return projects.find(p => p.name.toLowerCase().trim() === name.toLowerCase().trim() && p.parentId === parentId);
+      };
+
+      // Keep track of projects created during this batch to avoid duplicates
+      const batchCreatedProjects = {}; // key: "name|parentId", value: uuid
+
+      result.tasks.forEach(resTask => {
+        const task = tasks.find(t => t.id === resTask.id);
+        if (!task) return;
+
+        // Apply elaboration
+        task.text = resTask.elaboratedText || task.text;
+        task.notes = (task.notes ? task.notes + '\n\n' : '') + (resTask.notes || '');
+
+        if (resTask.subtasks && Array.isArray(resTask.subtasks)) {
+          if (!task.subtasks) task.subtasks = [];
+          resTask.subtasks.forEach(stText => {
+            task.subtasks.push({
+              id: crypto.randomUUID(),
+              text: stText,
+              completed: false
+            });
+          });
+        }
+
+        // Apply organization / project assignment
+        let targetProjectId = null;
+
+        if (resTask.projectId === 'new' && resTask.newProjectName) {
+          const normName = resTask.newProjectName.trim();
+          const parentId = resTask.newProjectParentId || null;
+          const key = `${normName.toLowerCase()}|${parentId}`;
+
+          // 1. Check pre-existing projects list
+          const existingProj = findProjectByName(normName, parentId);
+          if (existingProj) {
+            targetProjectId = existingProj.id;
+          }
+          // 2. Check batch-created projects
+          else if (batchCreatedProjects[key]) {
+            targetProjectId = batchCreatedProjects[key];
+          }
+          // 3. Create new project
+          else {
+            const newProjId = crypto.randomUUID();
+            const newProj = {
+              id: newProjId,
+              name: normName,
+              parentId: parentId,
+              expanded: true
+            };
+            projects.push(newProj);
+            batchCreatedProjects[key] = newProjId;
+            targetProjectId = newProjId;
+
+            // Auto-expand parent project folder
+            if (parentId && !expandedProjectIds.includes(parentId)) {
+              expandedProjectIds.push(parentId);
+            }
+          }
+        } else if (resTask.projectId && resTask.projectId !== 'new') {
+          // Verify existing project ID actually exists
+          const exists = projects.some(p => p.id === resTask.projectId);
+          if (exists) {
+            targetProjectId = resTask.projectId;
+          }
+        }
+
+        task.projectId = targetProjectId; // Assign to resolved project ID (or null/Inbox)
+      });
+    }
+
+    await saveState();
+    renderApp();
+  } catch (err) {
+    console.error('Organization failed:', err);
+    alert('Organization failed. Please verify your API key or network connection.');
+  } finally {
+    btnOrganizeInbox.textContent = originalOrgText;
+    btnElaborateInbox.disabled = false;
+    btnOrganizeInbox.disabled = false;
   }
 }
