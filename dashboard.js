@@ -6,6 +6,7 @@ let activeTaskId = null;
 let expandedProjectIds = [];
 let apiKey = '';
 let apiModel = 'gemini-2.5-flash';
+let fetchedModels = [];
 
 // DOM Elements
 const inputQuickAdd = document.getElementById('input-quick-add');
@@ -32,7 +33,10 @@ const btnSettings = document.getElementById('btn-settings');
 const settingsModal = document.getElementById('settings-modal');
 const btnCloseSettings = document.getElementById('btn-close-settings');
 const inputApiKey = document.getElementById('input-api-key');
+const btnFetchModels = document.getElementById('btn-fetch-models');
+const apiKeyStatus = document.getElementById('api-key-status');
 const selectModel = document.getElementById('select-model');
+const modelDetailsCard = document.getElementById('model-details-card');
 const btnSaveSettings = document.getElementById('btn-save-settings');
 
 // Initialize Extension
@@ -50,7 +54,8 @@ async function loadState() {
       'projects',
       'apiKey',
       'apiModel',
-      'expandedProjectIds'
+      'expandedProjectIds',
+      'fetchedModels'
     ]);
     
     tasks = data.tasks || [];
@@ -58,10 +63,11 @@ async function loadState() {
     apiKey = data.apiKey || '';
     apiModel = data.apiModel || 'gemini-2.5-flash';
     expandedProjectIds = data.expandedProjectIds || [];
+    fetchedModels = data.fetchedModels || [];
     
     // Set settings values
     inputApiKey.value = apiKey;
-    selectModel.value = apiModel;
+    renderModelSelectOptions();
   } catch (err) {
     console.error('Failed to load state:', err);
   }
@@ -75,7 +81,8 @@ async function saveState() {
       projects,
       apiKey,
       apiModel,
-      expandedProjectIds
+      expandedProjectIds,
+      fetchedModels
     });
   } catch (err) {
     console.error('Failed to save state:', err);
@@ -628,6 +635,24 @@ function initEventListeners() {
   btnSettings.addEventListener('click', showSettings);
   btnCloseSettings.addEventListener('click', hideSettings);
   
+  // Fetch Models manually
+  btnFetchModels.addEventListener('click', () => {
+    fetchModels(inputApiKey.value.trim());
+  });
+
+  // Auto-fetch models on API key change
+  inputApiKey.addEventListener('change', () => {
+    const val = inputApiKey.value.trim();
+    if (val.length > 10) {
+      fetchModels(val);
+    }
+  });
+
+  // Update model details card when changing model selection
+  selectModel.addEventListener('change', () => {
+    renderModelDetailsCard();
+  });
+  
   // Save settings
   btnSaveSettings.addEventListener('click', async () => {
     apiKey = inputApiKey.value.trim();
@@ -649,6 +674,13 @@ function initEventListeners() {
 
 function showSettings() {
   settingsModal.classList.remove('hidden');
+  apiKeyStatus.classList.add('hidden'); // Reset status message
+  if (apiKey) {
+    fetchModels(apiKey);
+  } else {
+    fetchedModels = [];
+    renderModelSelectOptions();
+  }
 }
 
 function hideSettings() {
@@ -1087,3 +1119,188 @@ Do not include any Markdown syntax, code block formatting (like \`\`\`json), or 
     btnOrganizeInbox.disabled = false;
   }
 }
+
+// Helper: Populate select options from fetched models or defaults
+function renderModelSelectOptions() {
+  selectModel.innerHTML = '';
+  
+  if (!fetchedModels || fetchedModels.length === 0) {
+    // If no models fetched yet, populate with common defaults as fallback but keep select disabled
+    const defaults = [
+      { name: 'models/gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', inputTokenLimit: 1048576, outputTokenLimit: 8192, description: 'Fast, cost-efficient model' },
+      { name: 'models/gemini-2.5-pro', displayName: 'Gemini 2.5 Pro', inputTokenLimit: 2097152, outputTokenLimit: 8192, description: 'Highly capable model for complex tasks' },
+      { name: 'models/gemini-1.5-flash', displayName: 'Gemini 1.5 Flash', inputTokenLimit: 1048576, outputTokenLimit: 8192, description: 'High speed and efficiency' },
+      { name: 'models/gemini-1.5-pro', displayName: 'Gemini 1.5 Pro', inputTokenLimit: 2097152, outputTokenLimit: 8192, description: 'High reasoning and context capabilities' }
+    ];
+    
+    defaults.forEach(m => {
+      const option = document.createElement('option');
+      const cleanVal = m.name.replace('models/', '');
+      option.value = cleanVal;
+      option.textContent = m.displayName;
+      selectModel.appendChild(option);
+    });
+    
+    // Set fallback active value
+    selectModel.value = apiModel;
+    selectModel.disabled = true;
+    modelDetailsCard.classList.add('hidden');
+    return;
+  }
+  
+  selectModel.disabled = false;
+  
+  fetchedModels.forEach(m => {
+    const option = document.createElement('option');
+    const cleanVal = m.name.replace('models/', '');
+    option.value = cleanVal;
+    
+    // Format input/output limits nicely in option text
+    const inputLimit = formatTokenLimit(m.inputTokenLimit);
+    const outputLimit = formatTokenLimit(m.outputTokenLimit);
+    option.textContent = `${m.displayName} (${inputLimit} In / ${outputLimit} Out)`;
+    selectModel.appendChild(option);
+  });
+  
+  // Set current selected value
+  selectModel.value = apiModel;
+  
+  // If the saved model is not in the list, set to the first one
+  if (!selectModel.value && selectModel.options.length > 0) {
+    selectModel.value = selectModel.options[0].value;
+  }
+  
+  renderModelDetailsCard();
+}
+
+// Helper: Render details card for the selected Gemini model
+function renderModelDetailsCard() {
+  const selectedVal = selectModel.value;
+  if (!selectedVal || !fetchedModels || fetchedModels.length === 0) {
+    modelDetailsCard.classList.add('hidden');
+    return;
+  }
+  
+  const model = fetchedModels.find(m => m.name.replace('models/', '') === selectedVal);
+  if (!model) {
+    modelDetailsCard.classList.add('hidden');
+    return;
+  }
+  
+  modelDetailsCard.classList.remove('hidden');
+  
+  // Free tier rate limits for common Gemini models (addresses request for token/request quotas)
+  const rateLimits = {
+    'gemini-2.5-flash': { rpm: '15', tpm: '1M', rpd: '1,500' },
+    'gemini-2.5-pro': { rpm: '2', tpm: '32k', rpd: '50' },
+    'gemini-2.0-flash-exp': { rpm: '10', tpm: '4M', rpd: '1,500' },
+    'gemini-1.5-flash': { rpm: '15', tpm: '1M', rpd: '1,500' },
+    'gemini-1.5-flash-8b': { rpm: '15', tpm: '1M', rpd: '1,500' },
+    'gemini-1.5-pro': { rpm: '2', tpm: '32k', rpd: '50' }
+  };
+  
+  const limits = rateLimits[selectedVal] || { rpm: '15*', tpm: '1M*', rpd: '1,500*' };
+  const suffix = rateLimits[selectedVal] ? '' : ' (Est.)';
+  
+  const formattedInputLimit = model.inputTokenLimit ? Number(model.inputTokenLimit).toLocaleString() : 'Unknown';
+  const formattedOutputLimit = model.outputTokenLimit ? Number(model.outputTokenLimit).toLocaleString() : 'Unknown';
+  
+  modelDetailsCard.innerHTML = `
+    <div class="model-detail-row">
+      <span class="model-detail-label">Model ID:</span>
+      <span class="model-detail-value">${selectedVal}</span>
+    </div>
+    <div class="model-detail-row">
+      <span class="model-detail-label">Input Context:</span>
+      <span class="model-detail-value">${formattedInputLimit} tokens</span>
+    </div>
+    <div class="model-detail-row">
+      <span class="model-detail-label">Output Limit:</span>
+      <span class="model-detail-value">${formattedOutputLimit} tokens</span>
+    </div>
+    <div class="model-detail-row">
+      <span class="model-detail-label">Free Requests:</span>
+      <span class="model-detail-value">${limits.rpm} / min | ${limits.rpd} / day${suffix}</span>
+    </div>
+    <div class="model-detail-row">
+      <span class="model-detail-label">Free Tokens:</span>
+      <span class="model-detail-value">${limits.tpm} / min${suffix}</span>
+    </div>
+    <div class="model-description">${model.description || 'No description available.'}</div>
+  `;
+}
+
+// Action: Fetch models from Gemini API using provided API key
+async function fetchModels(key) {
+  if (!key) {
+    showStatusMessage('Please enter an API key.', 'error');
+    return;
+  }
+  
+  showStatusMessage('Fetching models...', 'info');
+  btnFetchModels.disabled = true;
+  btnFetchModels.textContent = '...';
+  
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.error?.message || response.statusText;
+      throw new Error(errorMessage || `HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    if (data.models && Array.isArray(data.models)) {
+      // Filter for text generation models
+      fetchedModels = data.models.filter(m => 
+        m.supportedGenerationMethods && 
+        m.supportedGenerationMethods.includes('generateContent')
+      );
+      
+      // Sort Flash models first, then Pro models, alphabetically
+      fetchedModels.sort((a, b) => {
+        const isFlashA = a.name.toLowerCase().includes('flash');
+        const isFlashB = b.name.toLowerCase().includes('flash');
+        if (isFlashA && !isFlashB) return -1;
+        if (!isFlashA && isFlashB) return 1;
+        return a.displayName.localeCompare(b.displayName);
+      });
+      
+      await saveState();
+      renderModelSelectOptions();
+      showStatusMessage(`Loaded ${fetchedModels.length} models successfully.`, 'success');
+    } else {
+      throw new Error('No models returned from API.');
+    }
+  } catch (err) {
+    console.error('Failed to fetch models:', err);
+    showStatusMessage(`Failed to load models: ${err.message}`, 'error');
+    
+    // Fall back to empty and show defaults
+    fetchedModels = [];
+    renderModelSelectOptions();
+  } finally {
+    btnFetchModels.disabled = false;
+    btnFetchModels.textContent = 'Fetch';
+  }
+}
+
+// Helper: Show API status message in settings modal
+function showStatusMessage(text, type) {
+  apiKeyStatus.textContent = text;
+  apiKeyStatus.className = `api-status-message ${type}`;
+  apiKeyStatus.classList.remove('hidden');
+}
+
+// Helper: Format large numbers into human-readable K/M notation
+function formatTokenLimit(limit) {
+  if (!limit) return 'Unknown';
+  if (limit >= 1000000) {
+    return (limit / 1000000).toFixed(limit % 1000000 === 0 ? 0 : 1) + 'M';
+  }
+  if (limit >= 1000) {
+    return (limit / 1000).toFixed(limit % 1000 === 0 ? 0 : 1) + 'k';
+  }
+  return limit.toString();
+}
+
