@@ -18,6 +18,7 @@ const currentViewTitle = document.getElementById('current-view-title');
 const taskList = document.getElementById('task-list');
 const btnElaborateInbox = document.getElementById('btn-elaborate-inbox');
 const btnOrganizeInbox = document.getElementById('btn-organize-inbox');
+const btnOrganizeProjects = document.getElementById('btn-organize-projects');
 
 // Details Panel Elements
 const detailsPanel = document.getElementById('details-panel');
@@ -111,6 +112,7 @@ function renderSidebar() {
   }
 
   renderProjectsTree();
+  updateOrganizeProjectsButtonState();
 }
 
 // Render projects recursively
@@ -134,16 +136,20 @@ function createProjectNodeDOM(project) {
   nodeEl.className = 'project-node';
   nodeEl.dataset.id = project.id;
 
+  const children = projects.filter(p => p.parentId === project.id);
+  const hasChildren = children.length > 0;
+
   const itemEl = document.createElement('div');
   itemEl.className = `project-item ${activeView === project.id ? 'active' : ''}`;
   itemEl.addEventListener('click', () => {
     activeView = project.id;
     activeTaskId = null; // Close details when changing projects
-    renderApp();
+    if (hasChildren) {
+      toggleProjectExpanded(project.id);
+    } else {
+      renderApp();
+    }
   });
-
-  const children = projects.filter(p => p.parentId === project.id);
-  const hasChildren = children.length > 0;
   const isExpanded = expandedProjectIds.includes(project.id);
 
   // Expand / collapse button
@@ -676,6 +682,12 @@ function initEventListeners() {
   btnOrganizeInbox.addEventListener('click', () => {
     organizeInbox();
   });
+
+  if (btnOrganizeProjects) {
+    btnOrganizeProjects.addEventListener('click', () => {
+      organizeProjects();
+    });
+  }
 }
 
 function showSettings() {
@@ -1345,6 +1357,154 @@ function playCompletionSound() {
     osc2.stop(ctx.currentTime + 0.25);
   } catch (err) {
     console.warn('Could not play completion sound:', err);
+  }
+}
+
+// Update the disabled/enabled state of the projects organize button
+function updateOrganizeProjectsButtonState() {
+  if (!btnOrganizeProjects) return;
+  // Loose projects have parentId = null AND no children of their own
+  const looseProjects = projects.filter(p => !p.parentId && !projects.some(child => child.parentId === p.id));
+  if (looseProjects.length > 15) {
+    btnOrganizeProjects.disabled = false;
+  } else {
+    btnOrganizeProjects.disabled = true;
+  }
+}
+
+// AI: Organize Projects into Folders (Goals/Objectives)
+async function organizeProjects() {
+  if (!apiKey) {
+    alert('Please set your Gemini API Key in Settings first.');
+    showSettings();
+    return;
+  }
+
+  // 1. Identify "loose" projects: root projects with parentId null AND no children
+  const looseProjects = projects.filter(p => !p.parentId && !projects.some(child => child.parentId === p.id));
+  
+  if (looseProjects.length <= 15) {
+    alert('You need more than 15 loose projects to use the organize feature.');
+    return;
+  }
+
+  // 2. Identify existing "folders": root projects that have children
+  const existingFolders = projects.filter(p => !p.parentId && projects.some(child => child.parentId === p.id));
+
+  const originalText = btnOrganizeProjects.textContent;
+  btnOrganizeProjects.textContent = 'Organizing...';
+  btnOrganizeProjects.disabled = true;
+
+  const prompt = `You are an expert personal productivity coach and GTD (Getting Things Done) organizer.
+The user has a list of "loose" projects that are currently not organized into any folder (goal/objective).
+
+Your task is to organize these loose projects into high-level folders representing goals or objectives (e.g., "زندگی بهتر" (Better Living), "کسب درآمد" (Earning Income), "سلامتی" (Health), "آموزش" (Education/Learning), etc.).
+
+Here are the loose projects to organize:
+${JSON.stringify(looseProjects.map(p => ({ id: p.id, name: p.name })))}
+
+Here are the existing folders (goals/objectives) that already exist:
+${JSON.stringify(existingFolders.map(f => ({ id: f.id, name: f.name })))}
+
+For each loose project, decide:
+1. Which high-level folder (goal/objective) it belongs to.
+2. If it fits one of the existing folders, assign it to that existing folder's ID.
+3. If it does not fit any existing folder, define a new folder name (goal/objective). Use the same language and tone as the projects (typically Persian or English). Keep folder names general and concise (e.g. "زندگی بهتر", "کسب درآمد", "سلامتی", "آموزش", "Personal Development", "Work/Career").
+
+You must return a JSON response matching the following schema:
+{
+  "assignments": [
+    {
+      "projectId": "loose-project-uuid",
+      "folderId": "existing-folder-uuid" (or "new" if a new folder should be created),
+      "newFolderName": "Name of the new folder/objective (only if folderId is 'new')"
+    },
+    ...
+  ]
+}
+
+Do not include any Markdown syntax, code block formatting (like \`\`\`json), or extra text. Return ONLY the JSON object.`;
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json' }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const textResponse = data.candidates[0].content.parts[0].text;
+    const result = parseGeminiJSON(textResponse);
+
+    if (result && result.assignments && Array.isArray(result.assignments)) {
+      // Helper function to find folder by name
+      const findFolderByName = (name) => {
+        return projects.find(p => !p.parentId && p.name.toLowerCase().trim() === name.toLowerCase().trim());
+      };
+
+      const batchCreatedFolders = {}; // key: name.toLowerCase(), value: folderId
+
+      result.assignments.forEach(assign => {
+        const project = projects.find(p => p.id === assign.projectId);
+        if (!project) return;
+
+        let targetFolderId = null;
+
+        if (assign.folderId === 'new' && assign.newFolderName) {
+          const normName = assign.newFolderName.trim();
+          const key = normName.toLowerCase();
+
+          const existingFolder = findFolderByName(normName);
+          if (existingFolder) {
+            targetFolderId = existingFolder.id;
+          } else if (batchCreatedFolders[key]) {
+            targetFolderId = batchCreatedFolders[key];
+          } else {
+            const newFolderId = crypto.randomUUID();
+            const newFolder = {
+              id: newFolderId,
+              name: normName,
+              parentId: null,
+              expanded: true
+            };
+            projects.push(newFolder);
+            batchCreatedFolders[key] = newFolderId;
+            targetFolderId = newFolderId;
+          }
+        } else if (assign.folderId && assign.folderId !== 'new') {
+          // Check if folder exists
+          const exists = projects.some(p => p.id === assign.folderId && !p.parentId);
+          if (exists) {
+            targetFolderId = assign.folderId;
+          }
+        }
+
+        if (targetFolderId) {
+          project.parentId = targetFolderId;
+          // Auto-expand folder
+          if (!expandedProjectIds.includes(targetFolderId)) {
+            expandedProjectIds.push(targetFolderId);
+          }
+        }
+      });
+    }
+
+    await saveState();
+    renderApp();
+  } catch (err) {
+    console.error('Project organization failed:', err);
+    alert('Failed to organize projects. Please check your Gemini API key or connection.');
+  } finally {
+    btnOrganizeProjects.textContent = originalText;
+    btnOrganizeProjects.disabled = false;
+    updateOrganizeProjectsButtonState();
   }
 }
 

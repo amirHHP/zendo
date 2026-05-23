@@ -154,12 +154,18 @@ body {
   padding: 0 10px;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
 .section-title {
   font-size: 9px;
   font-weight: 700;
   color: var(--text-secondary);
   letter-spacing: 1px;
-  margin-bottom: 8px;
   text-transform: uppercase;
 }
 
@@ -390,6 +396,13 @@ body {
 .text-button:hover {
   color: var(--text-primary);
   background-color: var(--border-color);
+}
+
+.text-button:disabled,
+.text-button.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .text-button.danger:hover {
