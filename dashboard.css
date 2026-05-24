@@ -17,6 +17,36 @@
   --transition-normal: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+:root[data-theme="dark"] {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --bg-hover: #1e1e1e;
+  --text-primary: #f5f5f5;
+  --text-secondary: #a3a3a3;
+  --text-tertiary: #525252;
+  --border-color: #262626;
+  --border-active: #ffffff;
+  --accent-color: #ffffff;
+  --accent-light: #171717;
+}
+
+/* Smooth transition for theme colors */
+body, 
+.app-container, 
+.app-header, 
+.sidebar, 
+.main-panel, 
+.details-panel, 
+.modal, 
+.task-item, 
+.subtask-item, 
+input, 
+textarea, 
+select, 
+button {
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
 /* Base resets & dimensions */
 * {
   box-sizing: border-box;
@@ -410,6 +440,11 @@ body {
   background-color: #fee2e2;
 }
 
+:root[data-theme="dark"] .text-button.danger:hover {
+  background-color: #451a1a;
+  color: #f87171;
+}
+
 /* Details Panel (Drawer) */
 .details-panel {
   width: 320px;
@@ -623,6 +658,14 @@ body {
   animation: modalScale var(--transition-fast);
 }
 
+:root[data-theme="dark"] .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+:root[data-theme="dark"] .modal {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
 @keyframes modalScale {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
@@ -779,16 +822,34 @@ body {
   border-color: #bbf7d0;
 }
 
+:root[data-theme="dark"] .api-status-message.success {
+  background-color: #062f17;
+  color: #4ade80;
+  border-color: #166534;
+}
+
 .api-status-message.error {
   background-color: #fef2f2;
   color: #991b1b;
   border-color: #fecaca;
 }
 
+:root[data-theme="dark"] .api-status-message.error {
+  background-color: #450a0a;
+  color: #f87171;
+  border-color: #991b1b;
+}
+
 .api-status-message.info {
   background-color: #f8fafc;
   color: #475569;
   border-color: #e2e8f0;
+}
+
+:root[data-theme="dark"] .api-status-message.info {
+  background-color: #0f172a;
+  color: #94a3b8;
+  border-color: #334155;
 }
 
 .model-details-card {

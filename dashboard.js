@@ -7,6 +7,7 @@ let expandedProjectIds = [];
 let apiKey = '';
 let apiModel = 'gemini-2.5-flash';
 let fetchedModels = [];
+let theme = 'light';
 
 // DOM Elements
 const inputQuickAdd = document.getElementById('input-quick-add');
@@ -39,6 +40,7 @@ const apiKeyStatus = document.getElementById('api-key-status');
 const selectModel = document.getElementById('select-model');
 const modelDetailsCard = document.getElementById('model-details-card');
 const btnSaveSettings = document.getElementById('btn-save-settings');
+const btnThemeToggle = document.getElementById('btn-theme-toggle');
 
 // Initialize Extension
 document.addEventListener('DOMContentLoaded', async () => {
@@ -56,7 +58,8 @@ async function loadState() {
       'apiKey',
       'apiModel',
       'expandedProjectIds',
-      'fetchedModels'
+      'fetchedModels',
+      'theme'
     ]);
     
     tasks = data.tasks || [];
@@ -65,6 +68,14 @@ async function loadState() {
     apiModel = data.apiModel || 'gemini-2.5-flash';
     expandedProjectIds = data.expandedProjectIds || [];
     fetchedModels = data.fetchedModels || [];
+    
+    // Determine theme: preference or system media query fallback
+    if (data.theme) {
+      theme = data.theme;
+    } else {
+      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    applyTheme(theme);
     
     // Set settings values
     inputApiKey.value = apiKey;
@@ -83,10 +94,19 @@ async function saveState() {
       apiKey,
       apiModel,
       expandedProjectIds,
-      fetchedModels
+      fetchedModels,
+      theme
     });
   } catch (err) {
     console.error('Failed to save state:', err);
+  }
+}
+
+// Apply theme to document element
+function applyTheme(themeValue) {
+  document.documentElement.setAttribute('data-theme', themeValue);
+  if (btnThemeToggle) {
+    btnThemeToggle.textContent = themeValue === 'dark' ? 'Light Mode' : 'Dark Mode';
   }
 }
 
@@ -646,6 +666,15 @@ function initEventListeners() {
   // Settings visibility
   btnSettings.addEventListener('click', showSettings);
   btnCloseSettings.addEventListener('click', hideSettings);
+
+  // Theme Toggle
+  if (btnThemeToggle) {
+    btnThemeToggle.addEventListener('click', async () => {
+      theme = theme === 'dark' ? 'light' : 'dark';
+      applyTheme(theme);
+      await saveState();
+    });
+  }
   
   // Fetch Models manually
   btnFetchModels.addEventListener('click', () => {
