@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fa" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Meta Tags -->
+  <title id="page-title">Zendo GTD — Minimalist Task Manager powered by Gemini AI</title>
+  <meta name="description" content="An ultra-minimalist, distraction-free GTD task manager extension with local-first privacy, collapsible folder structures, and AI-powered task elaboration via Gemini.">
+  <meta name="keywords" content="GTD, task manager, todo list, minimalist todo, chrome extension, gemini ai, local first, privacy task manager, Vazirmatn">
+  <meta name="author" content="Zendo Developer">
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Zendo GTD — Minimalist Task Manager">
+  <meta property="og:description" content=" distraction-free B&W task manager with Gemini AI elaboration. Local-first & privacy-focused.">
+  <meta property="og:image" content="z-logo.svg">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="z-logo.svg">
+  <link rel="apple-touch-icon" href="z-logo.svg">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation Header -->
+  <header>
+    <div class="header-container">
+      <a href="#" class="logo-group" id="header-logo-link">
+        <img src="z-logo.svg" alt="Zendo Logo">
+        <span class="logo-text">Zendo</span>
+      </a>
+      <div class="header-controls">
+        <button id="btn-lang-toggle" class="btn-toggle" aria-label="Toggle Language" title="Toggle Language">
+          <span lang="en">فارسی</span>
+          <span lang="fa">English</span>
+        </button>
+        <button id="btn-theme-toggle" class="btn-toggle" aria-label="Toggle Dark Mode" title="Toggle Dark/Light Theme">
+          <span class="theme-icon">🌓</span>
+          <span lang="en">Dark Mode</span>
+          <span lang="fa">حالت تاریک</span>
+        </button>
+        <a href="https://github.com/amirHHP/zendo" class="btn-primary" id="btn-header-install">
+          <span lang="en">Get Zendo</span>
+          <span lang="fa">دریافت زندو</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="landing-content">
+    
+    <!-- Hero Section -->
+    <section class="hero" id="section-hero">
+      <div class="badge-tag">
+        <span lang="en">Minimalist &amp; Local-First</span>
+        <span lang="fa">آفلاین‌محور و مینیمال</span>
+      </div>
+      
+      <h1>
+        <span lang="en">Simplify your focus.<br>Structure your mind.</span>
+        <span lang="fa">تمرکز خود را ساده کنید.<br>ذهن خود را منظم کنید.</span>
+      </h1>
+      
+      <p class="lead">
+        <span lang="en">Zendo is an ultra-minimalist, distraction-free GTD task manager Chrome extension. It structures your inbox, categorizes items with collapsible project trees, and refines tasks using Gemini AI.</span>
+        <span lang="fa">زندو یک اکستنشن مدیریت تسک فوق‌العاده مینیمال و بدون حواس‌پرتی بر پایه متدولوژی GTD است. زندو تسک‌های ورودی را دسته‌بندی کرده و با استفاده از هوش مصنوعی Gemini آن‌ها را بسط می‌دهد.</span>
+      </p>
+      
+      <div class="hero-ctas">
+        <a href="https://github.com/amirHHP/zendo" class="btn-primary">
+          <span lang="en">Install Extension</span>
+          <span lang="fa">نصب اکستنشن</span>
+        </a>
+        <a href="https://github.com/amirHHP/zendo" class="btn-secondary">
+          <span lang="en">View Source on GitHub</span>
+          <span lang="fa">مشاهده سورس‌کد در گیت‌هاب</span>
+        </a>
+      </div>
+
+      <!-- Interactive CSS Mockup of the Extension -->
+      <div class="mockup-container">
+        <div class="mockup-window">
+          <div class="mockup-window-header">
+            <div class="mockup-dots">
+              <span class="mockup-dot"></span>
+              <span class="mockup-dot"></span>
+              <span class="mockup-dot"></span>
+            </div>
+            <div class="mockup-title">Zendo GTD Dashboard</div>
+            <div style="width: 42px;"></div> <!-- Spacer to center title -->
+          </div>
+          
+          <div class="mockup-app">
+            <!-- Mockup Sidebar -->
+            <aside class="mockup-sidebar">
+              <div class="mockup-nav-item active" id="mockup-nav-inbox">
+                <span>📥</span>
+                <span class="label">
+                  <span lang="en">Inbox</span>
+                  <span lang="fa">ورودی‌ها</span>
+                </span>
+                <span class="badge" id="mockup-inbox-count">2</span>
+              </div>
+              
+              <div class="mockup-section-title">
+                <span lang="en">Projects</span>
+                <span lang="fa">پروژه‌ها</span>
+              </div>
+              
+              <div class="mockup-project-list">
+                <div class="mockup-project-item" id="mockup-proj-work">
+                  <span class="mockup-project-bullet"></span>
+                  <span class="label">
+                    <span lang="en">Work</span>
+                    <span lang="fa">کار</span>
+                  </span>
+                </div>
+                <div class="mockup-project-item" id="mockup-proj-personal">
+                  <span class="mockup-project-bullet"></span>
+                  <span class="label">
+                    <span lang="en">Personal</span>
+                    <span lang="fa">شخصی</span>
+                  </span>
+                </div>
+              </div>
+            </aside>
+            
+            <!-- Mockup Main Panel -->
+            <div class="mockup-main">
+              <div class="mockup-quick-add">
+                <input type="text" readonly placeholder="Capture: what needs to be done? / ثبت ایده جدید...">
+              </div>
+              
+              <div class="mockup-tasks-container">
+                <div class="mockup-tasks-header">
+                  <h3 id="mockup-current-view">
+                    <span lang="en">Inbox</span>
+                    <span lang="fa">صندوق ورودی</span>
+                  </h3>
+                </div>
+                
+                <div class="mockup-task-list" id="mockup-task-list">
+                  <!-- Task 1 (Expanded / Active) -->
+                  <div class="mockup-task-item active" id="mockup-task-1">
+                    <span class="mockup-checkbox"></span>
+                    <span class="mockup-task-text">
+                      <span lang="en">Draft landing page layout and copy</span>
+                      <span lang="fa">طراحی طرح کلی و متون لندینگ پیج</span>
+                    </span>
+                    <span class="mockup-task-badge">
+                      <span lang="en">Inbox</span>
+                      <span lang="fa">ورودی</span>
+                    </span>
+                  </div>
+                  
+                  <!-- Task 2 -->
+                  <div class="mockup-task-item" id="mockup-task-2">
+                    <span class="mockup-checkbox"></span>
+                    <span class="mockup-task-text">
+                      <span lang="en">Buy groceries for dinner</span>
+                      <span lang="fa">خرید مواد غذایی برای شام</span>
+                    </span>
+                    <span class="mockup-task-badge">
+                      <span lang="en">Inbox</span>
+                      <span lang="fa">ورودی</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Mockup Details Drawer -->
+            <div class="mockup-drawer" id="mockup-drawer">
+              <div class="mockup-drawer-header">
+                <h4>
+                  <span lang="en">Task Details</span>
+                  <span lang="fa">جزئیات تسک</span>
+                </h4>
+                <button class="mockup-drawer-close" id="mockup-drawer-close-btn">&times;</button>
+              </div>
+              
+              <div class="mockup-drawer-field">
+                <label>
+                  <span lang="en">Task</span>
+                  <span lang="fa">عنوان تسک</span>
+                </label>
+                <p id="mockup-detail-title">
+                  <span lang="en">Draft landing page layout and copy</span>
+                  <span lang="fa">طراحی طرح کلی و متون لندینگ پیج</span>
+                </p>
+              </div>
+              
+              <div class="mockup-drawer-field">
+                <label>
+                  <span lang="en">Subtasks</span>
+                  <span lang="fa">زیرتسک‌ها</span>
+                </label>
+                <div class="mockup-subtasks-list">
+                  <div class="mockup-subtask-item completed">
+                    <span class="mockup-subtask-box"></span>
+                    <span class="mockup-subtask-text">
+                      <span lang="en">Create vector SVG logo</span>
+                      <span lang="fa">ساخت فایل وکتور SVG لوگو</span>
+                    </span>
+                  </div>
+                  <div class="mockup-subtask-item">
+                    <span class="mockup-subtask-box"></span>
+                    <span class="mockup-subtask-text">
+                      <span lang="en">Write premium style.css file</span>
+                      <span lang="fa">نوشتن استایل‌های پیشرفته css</span>
+                    </span>
+                  </div>
+                  <div class="mockup-subtask-item">
+                    <span class="mockup-subtask-box"></span>
+                    <span class="mockup-subtask-text">
+                      <span lang="en">Develop interactive mockups</span>
+                      <span lang="fa">پیاده‌سازی ماکاپ تعاملی</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Grid Section -->
+    <section class="features" id="section-features">
+      <div class="section-intro">
+        <h2>
+          <span lang="en">Built for deep work.</span>
+          <span lang="fa">ساخته شده برای تمرکز عمیق.</span>
+        </h2>
+        <p>
+          <span lang="en">Everything you need to capture ideas, reduce cognitive load, and execute tasks without clutter.</span>
+          <span lang="fa">هر آنچه برای ثبت ایده‌ها، کاهش بار فکری و اجرای بی‌دغدغه کارهایتان نیاز دارید، بدون شلوغی‌های اضافه.</span>
+        </p>
+      </div>
+      
+      <div class="features-grid">
+        <!-- Feature 1: Quick Capture -->
+        <div class="feature-card">
+          <span class="feature-icon" aria-hidden="true">📥</span>
+          <h3>
+            <span lang="en">Quick Capture</span>
+            <span lang="fa">ثبت و جذب سریع</span>
+          </h3>
+          <p>
+            <span lang="en">Instantly log thoughts, links, and action items directly into your inbox from any page with a simple shortcut.</span>
+            <span lang="fa">ایده‌ها، تسک‌ها و یادداشت‌هایتان را به محض تولد، مستقیماً از هر تب مرورگر با سرعت بالا ثبت کنید.</span>
+          </p>
+        </div>
+        
+        <!-- Feature 2: Folder Tree -->
+        <div class="feature-card">
+          <span class="feature-icon" aria-hidden="true">🌳</span>
+          <h3>
+            <span lang="en">Nestable Project Trees</span>
+            <span lang="fa">پروژه‌های درختی تو در تو</span>
+          </h3>
+          <p>
+            <span lang="en">Organize tasks into hierarchical projects and sub-projects using an elegant, collapsible folder tree sidebar.</span>
+            <span lang="fa">کارهای خود را در ساختاری درختی و چندلایه از پروژه‌ها و زیرپروژه‌ها در نوار کناری دسته‌بندی و مرتب کنید.</span>
+          </p>
+        </div>
+        
+        <!-- Feature 3: AI Elaboration -->
+        <div class="feature-card">
+          <span class="feature-icon" aria-hidden="true">🪄</span>
+          <h3>
+            <span lang="en">AI Task Elaboration</span>
+            <span lang="fa">بسط تسک با هوش مصنوعی</span>
+          </h3>
+          <p>
+            <span lang="en">Vague tasks? Use Gemini AI to automatically rewrite titles for clarity, draft subtasks, and add detailed context.</span>
+            <span lang="fa">تسک‌های مبهم دارید؟ با زدن دکمه بسط هوشمند، هوش مصنوعی Gemini لیستی از زیرتسک‌ها و یادداشت‌های مفید ایجاد می‌کند.</span>
+          </p>
+        </div>
+        
+        <!-- Feature 4: AI Organization -->
+        <div class="feature-card">
+          <span class="feature-icon" aria-hidden="true">🧠</span>
+          <h3>
+            <span lang="en">AI Organization</span>
+            <span lang="fa">سازماندهی خودکار با هوش مصنوعی</span>
+          </h3>
+          <p>
+            <span lang="en">Let AI intelligently categorize and file incoming inbox tasks into relevant existing folders or create new ones automatically.</span>
+            <span lang="fa">اجازه دهید هوش مصنوعی تسک‌های جدید را هوشمندانه در پروژه‌های مناسب قرار داده یا پروژه‌های جدید پیشنهاد دهد.</span>
+          </p>
+        </div>
+        
+        <!-- Feature 5: Privacy-First -->
+        <div class="feature-card">
+          <span class="feature-icon" aria-hidden="true">🔒</span>
+          <h3>
+            <span lang="en">Direct Gemini Integration</span>
+            <span lang="fa">امنیت و اتصال مستقیم</span>
+          </h3>
+          <p>
+            <span lang="en">Data is stored 100% locally in your browser storage. Connect directly to official Google API using your personal Gemini API key.</span>
+            <span lang="fa">داده‌های شما کاملاً محلی روی مرورگر ذخیره می‌شود. ارتباط با هوش مصنوعی مستقیم با کلید API شخصی شما انجام می‌گردد.</span>
+          </p>
+        </div>
+        
+        <!-- Feature 6: Dark Mode -->
+        <div class="feature-card">
+          <span class="feature-icon" aria-hidden="true">🌓</span>
+          <h3>
+            <span lang="en">Elegant B&amp;W Theme</span>
+            <span lang="fa">تم مینیمال سیاه و سفید</span>
+          </h3>
+          <p>
+            <span lang="en">A gorgeous, distraction-free monochrome theme. Supports a clean dark mode designed to minimize visual eye strain.</span>
+            <span lang="fa">یک طراحی سیاه و سفید بسیار شیک و بدون عوامل مخل تمرکز. همراه با تم تاریک برای کار در شب و کاهش خستگی چشم.</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Simulator Sandbox Section -->
+    <section class="sandbox-section" id="section-sandbox">
+      <div class="section-intro">
+        <h2>
+          <span lang="en">Try AI Elaboration live</span>
+          <span lang="fa">تست زنده بسط تسک‌ها</span>
+        </h2>
+        <p>
+          <span lang="en">Type a brief, vague task below and witness how Zendo's Gemini assistant elaborates it into actionable steps.</span>
+          <span lang="fa">یک تسک کوتاه یا مبهم در کادر زیر بنویسید و ببینید دستیار هوشمند زندو چطور آن را به مراحل عملیاتی تقسیم می‌کند.</span>
+        </p>
+      </div>
+
+      <div class="sandbox-container">
+        <div class="sandbox-title-bar">
+          <h3>
+            <span lang="en">Gemini Task Elaborator Sandbox</span>
+            <span lang="fa">شبیه‌ساز هوش مصنوعی بسط تسک</span>
+          </h3>
+          <p>
+            <span lang="en">Simulate the in-extension experience / شبیه‌سازی تجربه درون اکستنشن</span>
+          </p>
+        </div>
+
+        <div class="sandbox-input-group">
+          <input type="text" id="sandbox-input" placeholder="Type a task (e.g. 'سفر شمال' or 'build a compiler')...">
+          <button id="sandbox-btn-run">
+            <span>✨</span>
+            <span lang="en">Elaborate</span>
+            <span lang="fa">بسط دادن</span>
+          </button>
+        </div>
+
+        <div class="sandbox-suggestions">
+          <span class="sandbox-suggestion-chip" data-task-en="Plan weekend road trip" data-task-fa="برنامه‌ریزی سفر آخر هفته">
+            <span lang="en">Plan weekend road trip</span>
+            <span lang="fa">برنامه‌ریزی سفر آخر هفته</span>
+          </span>
+          <span class="sandbox-suggestion-chip" data-task-en="Learn basic Rust language" data-task-fa="یادگیری مقدماتی زبان راست">
+            <span lang="en">Learn basic Rust language</span>
+            <span lang="fa">یادگیری مقدماتی زبان راست</span>
+          </span>
+          <span class="sandbox-suggestion-chip" data-task-en="Prepare product launch checklist" data-task-fa="تهیه چک‌لیست انتشار محصول">
+            <span lang="en">Prepare product launch checklist</span>
+            <span lang="fa">تهیه چک‌لیست انتشار محصول</span>
+          </span>
+        </div>
+
+        <div class="sandbox-output" id="sandbox-output">
+          <div class="sandbox-output-placeholder" id="sandbox-placeholder">
+            <span lang="en">Vague task inputs will display structured subtasks here.</span>
+            <span lang="fa">نتیجه سازماندهی و زیرتسک‌های بسط‌داده شده در این کادر نمایش داده می‌شود.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Setup / Installation Steps -->
+    <section class="setup-section" id="section-setup">
+      <div class="section-intro">
+        <h2>
+          <span lang="en">Get started in minutes</span>
+          <span lang="fa">راه‌اندازی در چند دقیقه</span>
+        </h2>
+        <p>
+          <span lang="en">Setting up Zendo is straightforward. Follow these steps to unlock deep, focused organization.</span>
+          <span lang="fa">شروع کار با زندو بسیار ساده است. مراحل زیر را برای دسترسی به محیط تمرکز عمیق طی کنید.</span>
+        </p>
+      </div>
+
+      <div class="setup-steps">
+        <!-- Step 1 -->
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <h3>
+            <span lang="en">Download and Load</span>
+            <span lang="fa">دانلود و بارگذاری اکستنشن</span>
+          </h3>
+          <p>
+            <span lang="en">Clone the repository or download the ZIP, open <code>chrome://extensions</code>, enable Developer Mode, and click <b>Load Unpacked</b>.</span>
+            <span lang="fa">پروژه را کلون یا فایل ZIP آن را دانلود کنید. آدرس <code>chrome://extensions</code> را باز کرده، حالت توسعه‌دهنده را فعال کنید و دکمه <b>Load Unpacked</b> را بزنید.</span>
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <h3>
+            <span lang="en">Add Gemini API Key</span>
+            <span lang="fa">وارد کردن کلید API</span>
+          </h3>
+          <p>
+            <span lang="en">Get a free key from Google AI Studio. Open settings in Zendo, paste your key, and select a Gemini model (e.g. Gemini 1.5 Flash).</span>
+            <span lang="fa">یک کلید API رایگان از Google AI Studio بگیرید. بخش تنظیمات زندو را باز کرده، کلید خود را جایگذاری کرده و یکی از مدل‌های Gemini را انتخاب کنید.</span>
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <h3>
+            <span lang="en">Capture &amp; Organize</span>
+            <span lang="fa">ثبت و تمرکز</span>
+          </h3>
+          <p>
+            <span lang="en">Add items to your inbox, create nested projects, and use AI features to elaborate complex tasks into actionable check-lists.</span>
+            <span lang="fa">کارهای روزانه را در صندوق ورودی ثبت کرده، به پروژه‌های درختی انتقال دهید و با کمک هوش مصنوعی کارهای پیچیده را به مراحل ساده بشکنید.</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <a href="#" class="footer-brand">
+        <span class="logo-text">Zendo GTD</span>
+      </a>
+      <div class="footer-links">
+        <a href="https://github.com/amirHHP/zendo/blob/main/PRIVACY.md">
+          <span lang="en">Privacy Policy</span>
+          <span lang="fa">سیاست حریم خصوصی</span>
+        </a>
+        <a href="https://github.com/amirHHP/zendo/issues">
+          <span lang="en">Support &amp; Issues</span>
+          <span lang="fa">پشتیبانی و خطاها</span>
+        </a>
+        <a href="https://github.com/amirHHP/zendo">
+          <span lang="en">Source Code</span>
+          <span lang="fa">کدهای پروژه</span>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="script.js"></script>
+</body>
+</html>
