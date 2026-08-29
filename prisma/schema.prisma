@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String       @id @default(uuid())
+  email         String       @unique
+  name          String?
+  password      String?
+  image         String?
+  isPro         Boolean      @default(false)
+  proSince      DateTime?
+  proUntil      DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  tasks         Task[]
+  projects      Project[]
+  settings      Settings?
+  payments      Payment[]
+}
+
+model Project {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  parentId  String?
+  parent    Project?  @relation("ProjectHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Project[] @relation("ProjectHierarchy")
+  expanded  Boolean   @default(true)
+  tasks     Task[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([parentId])
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text        String
+  notes       String    @default("")
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  subtasks    Subtask[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([projectId])
+}
+
+model Subtask {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  text      String
+  completed Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([taskId])
+}
+
+model Settings {
+  id           String  @id @default(uuid())
+  userId       String  @unique
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKey       String? // Optional custom Gemini API key
+  apiModel     String  @default("gemini-2.5-flash")
+  theme        String  @default("light")
+  dailyAiCount Int     @default(0)
+  lastAiDate   String? // Format: YYYY-MM-DD
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  authority String   @unique
+  amount    Int      // In Tomans
+  status    String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  refId     String?
+  plan      String   @default("PRO_MONTHLY")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
