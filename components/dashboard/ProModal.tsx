@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { apiFetch } from '@/lib/api';
 
 interface ProModalProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ export function ProModal({ isOpen, onClose }: ProModalProps) {
     setError('');
 
     try {
-      const res = await fetch('/api/payment/request', {
+      const res = await apiFetch('/api/payment/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: selectedPlan }),

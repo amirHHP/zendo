@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { UserSettings, GeminiModelInfo } from '@/types';
+import { apiFetch } from '@/lib/api';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ export function SettingsModal({
     setStatusMsg({ text: 'در حال دریافت لیست مدل‌ها...', type: 'info' });
 
     try {
-      const res = await fetch('/api/ai/models', {
+      const res = await apiFetch('/api/ai/models', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: apiKey.trim() }),

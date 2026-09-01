@@ -11,6 +11,7 @@ import { TaskList } from '@/components/dashboard/TaskList';
 import { TaskDetails } from '@/components/dashboard/TaskDetails';
 import { SettingsModal } from '@/components/dashboard/SettingsModal';
 import { ProModal } from '@/components/dashboard/ProModal';
+import { apiFetch } from '@/lib/api';
 
 export default function DashboardPage() {
   return (
@@ -87,9 +88,9 @@ function DashboardContent() {
     try {
       setLoading(true);
       const [tasksRes, projectsRes, settingsRes] = await Promise.all([
-        fetch('/api/tasks').then((r) => r.json()),
-        fetch('/api/projects').then((r) => r.json()),
-        fetch('/api/settings').then((r) => r.json()),
+        apiFetch('/api/tasks').then((r) => r.json()),
+        apiFetch('/api/projects').then((r) => r.json()),
+        apiFetch('/api/settings').then((r) => r.json()),
       ]);
 
       if (tasksRes.tasks) setTasks(tasksRes.tasks);
@@ -110,7 +111,7 @@ function DashboardContent() {
   const handleAddTask = async (text: string) => {
     const targetProjectId = activeView === 'inbox' ? null : activeView;
     try {
-      const res = await fetch('/api/tasks', {
+      const res = await apiFetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, projectId: targetProjectId }),
@@ -140,7 +141,7 @@ function DashboardContent() {
     );
 
     try {
-      await fetch(`/api/tasks/${task.id}`, {
+      await apiFetch(`/api/tasks/${task.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed: newCompleted }),
@@ -157,7 +158,7 @@ function DashboardContent() {
     if (activeTaskId === id) setActiveTaskId(null);
 
     try {
-      await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+      await apiFetch(`/api/tasks/${id}`, { method: 'DELETE' });
     } catch (err) {
       console.error('Error deleting task:', err);
     }
@@ -170,7 +171,7 @@ function DashboardContent() {
     );
 
     try {
-      const res = await fetch(`/api/tasks/${id}`, {
+      const res = await apiFetch(`/api/tasks/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
@@ -187,7 +188,7 @@ function DashboardContent() {
   // Projects CRUD
   const handleAddProject = async (name: string) => {
     try {
-      const res = await fetch('/api/projects', {
+      const res = await apiFetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
@@ -208,7 +209,7 @@ function DashboardContent() {
 
   const handleAddSubproject = async (parentId: string, name: string) => {
     try {
-      const res = await fetch('/api/projects', {
+      const res = await apiFetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, parentId }),
@@ -229,7 +230,7 @@ function DashboardContent() {
 
   const handleDeleteProject = async (projectId: string) => {
     try {
-      const res = await fetch(`/api/projects/${projectId}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/projects/${projectId}`, { method: 'DELETE' });
       const data = await res.json();
       if (res.ok) {
         const fallbackView = data.parentId || 'inbox';
@@ -251,7 +252,7 @@ function DashboardContent() {
     );
 
     try {
-      await fetch(`/api/projects/${projectId}`, {
+      await apiFetch(`/api/projects/${projectId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ expanded: newExpanded }),
@@ -265,7 +266,7 @@ function DashboardContent() {
   const handleElaborateInbox = async () => {
     setIsElaboratingInbox(true);
     try {
-      const res = await fetch('/api/ai/elaborate', {
+      const res = await apiFetch('/api/ai/elaborate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inbox: true }),
@@ -287,7 +288,7 @@ function DashboardContent() {
   const handleOrganizeInbox = async () => {
     setIsOrganizingInbox(true);
     try {
-      const res = await fetch('/api/ai/organize', {
+      const res = await apiFetch('/api/ai/organize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inbox: true }),
@@ -310,7 +311,7 @@ function DashboardContent() {
   const handleOrganizeProjects = async () => {
     setIsOrganizingProjects(true);
     try {
-      const res = await fetch('/api/ai/organize-projects', { method: 'POST' });
+      const res = await apiFetch('/api/ai/organize-projects', { method: 'POST' });
       const data = await res.json();
       if (!res.ok) {
         alert(data.error || 'خطا در مرتب‌سازی پروژه‌ها');
@@ -328,7 +329,7 @@ function DashboardContent() {
   const handleElaborateTask = async (taskId: string) => {
     setIsElaboratingTask(true);
     try {
-      const res = await fetch('/api/ai/elaborate', {
+      const res = await apiFetch('/api/ai/elaborate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId }),
@@ -352,7 +353,7 @@ function DashboardContent() {
   const handleOrganizeTask = async (taskId: string) => {
     setIsOrganizingTask(true);
     try {
-      const res = await fetch('/api/ai/organize', {
+      const res = await apiFetch('/api/ai/organize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId }),
@@ -377,7 +378,7 @@ function DashboardContent() {
 
   // Settings Save
   const handleSaveSettings = async (newSettings: Partial<UserSettings>) => {
-    const res = await fetch('/api/settings', {
+    const res = await apiFetch('/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newSettings),
