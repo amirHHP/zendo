@@ -38,9 +38,8 @@ vercel
 | نام متغیر | مقدار نمونه / توضیح |
 |---|---|
 | `DATABASE_URL` | آدرس PostgreSQL از Neon یا Supabase |
-| `NEXTAUTH_URL` | `https://theminiceo.ir/zendo` (یا آدرس دامنه ورسل) |
+| `NEXTAUTH_URL` | `https://zendo.theminiceo.ir` |
 | `NEXTAUTH_SECRET` | یک رشته امن و تصادفی ۳۲ کاراکتری |
-| `NEXT_PUBLIC_BASE_PATH` | `/zendo` (برای نمایش در `theminiceo.ir/zendo`) |
 | `GEMINI_API_KEY` | کلید پیش‌فرض سرور (از Google AI Studio) |
 | `ZARINPAL_MERCHANT_ID` | مرچنت‌کد زرین‌پال شما |
 | `ZARINPAL_SANDBOX` | `false` (در محیط تولید) یا `true` (برای حالت تستی) |
