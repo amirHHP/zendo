@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/zendo",
+      "permanent": false
+    }
+  ]
+}
