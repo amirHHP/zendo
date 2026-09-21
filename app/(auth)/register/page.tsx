@@ -45,20 +45,30 @@ export default function RegisterPage() {
       }
 
       // Auto login upon successful registration
-      const loginRes = await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-      });
+      try {
+        const loginRes = await signIn('credentials', {
+          redirect: false,
+          email,
+          password,
+        });
 
-      if (loginRes?.error) {
+        if (loginRes?.error) {
+          router.push('/login');
+        } else {
+          router.push('/dashboard');
+          router.refresh();
+        }
+      } catch (loginErr) {
+        console.error('Auto-login after registration failed:', loginErr);
         router.push('/login');
-      } else {
-        router.push('/dashboard');
-        router.refresh();
       }
     } catch (err: any) {
-      setError('خطای غیرمنتظره رخ داد.');
+      console.error('Registration error:', err);
+      if (err instanceof TypeError && err.message === 'Failed to fetch') {
+        setError('خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید.');
+      } else {
+        setError(err?.message || 'خطای غیرمنتظره رخ داد.');
+      }
     } finally {
       setLoading(false);
     }
