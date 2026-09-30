@@ -87,12 +87,16 @@ export function Sidebar({
               onClick={onOrganizeProjects}
               title={
                 canOrganize
-                  ? 'دسته‌بندی هوشمند پروژه‌ها با هوش مصنوعی'
-                  : 'برای استفاده از این قابلیت نیاز به بیش از ۱۵ پروژه بدون دسته‌بندی دارید'
+                  ? 'دسته‌بندی هوشمند پروژه‌ها در فولدرها و اهداف با هوش مصنوعی'
+                  : `برای استفاده از این قابلیت نیاز به بیش از ۱۵ پروژه بدون دسته‌بندی دارید (${looseProjects.length}/15)`
               }
               style={{ fontSize: '11px' }}
             >
-              {isOrganizingProjects ? 'در حال مرتب‌سازی...' : 'Organize'}
+              {isOrganizingProjects
+                ? 'در حال مرتب‌سازی...'
+                : canOrganize
+                ? '📂 دسته‌بندی پروژه‌ها'
+                : `دسته‌بندی (${looseProjects.length}/15)`}
             </button>
           </div>
 

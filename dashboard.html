@@ -52,8 +52,22 @@
           <div class="list-header">
             <h2 id="current-view-title">Inbox</h2>
             <div class="list-actions">
-              <button id="btn-elaborate-inbox" class="primary-button hidden">Elaborate</button>
-              <button id="btn-organize-inbox" class="primary-button hidden">Organize</button>
+              <button id="btn-elaborate-inbox" class="primary-button hidden" title="شفاف‌سازی عنوان تسک‌ها، افزودن توضیحات کاربردی و تقسیم به زیرتسک‌های مرحله‌به‌مرحله با هوش مصنوعی">✨ شفاف‌سازی (Elaborate)</button>
+              <button id="btn-organize-inbox" class="primary-button hidden" title="دسته‌بندی هوشمند تسک‌های اینباکس در پروژه‌ها (نیاز به حداقل ۳۰ تسک)">📂 دسته‌بندی (Organize)</button>
+            </div>
+          </div>
+          <div id="inbox-ai-guide" class="inbox-ai-guide hidden">
+            <div class="inbox-ai-guide-item">
+              <span class="guide-icon">✨</span>
+              <div>
+                <strong>شفاف‌سازی (Elaborate):</strong> هوش مصنوعی عناوین را عملیاتی کرده، توضیحات راهنما می‌افزاید و تسک‌ها را به زیرتسک‌های کوچک تقسیم می‌کند تا شروع کار آسان شود.
+              </div>
+            </div>
+            <div class="inbox-ai-guide-item">
+              <span class="guide-icon">📂</span>
+              <div>
+                <strong>دسته‌بندی (Organize):</strong> هوش مصنوعی تسک‌ها را بر اساس موضوع در پروژه‌ها قرار می‌دهد. (برای ارسال کانتکست مناسب و جلوگیری از دسته‌بندی اشتباه، با رسیدن به <strong>۳۰ تسک</strong> فعال می‌شود: <span id="inbox-organize-progress" class="inbox-ai-guide-badge">0/30</span>)
+              </div>
             </div>
           </div>
           <div class="task-list" id="task-list">

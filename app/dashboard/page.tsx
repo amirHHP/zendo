@@ -286,6 +286,12 @@ function DashboardContent() {
 
   // AI: Organize Inbox
   const handleOrganizeInbox = async () => {
+    const incompleteInboxCount = tasks.filter((t) => !t.projectId && !t.completed).length;
+    if (incompleteInboxCount < 30) {
+      alert(`برای سازماندهی هوشمند نیاز به حداقل ۳۰ تسک در اینباکس است تا هوش مصنوعی کانتکست کافی برای دسته‌بندی دقیق داشته باشد. (تعداد فعلی: ${incompleteInboxCount} از ۳۰)`);
+      return;
+    }
+
     setIsOrganizingInbox(true);
     try {
       const res = await apiFetch('/api/ai/organize', {

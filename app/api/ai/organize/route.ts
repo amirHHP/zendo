@@ -92,18 +92,34 @@ Do not include any Markdown syntax or extra text. Return ONLY the JSON object.`;
         return NextResponse.json({ tasks: [], projects: existingProjects });
       }
 
+      if (inboxTasks.length < 30) {
+        return NextResponse.json(
+          {
+            error: `برای سازماندهی هوشمند نیاز به حداقل ۳۰ تسک در اینباکس است تا هوش مصنوعی کانتکست کافی برای دسته‌بندی دقیق داشته باشد. (تعداد فعلی: ${inboxTasks.length} از ۳۰)`,
+          },
+          { status: 400 }
+        );
+      }
+
       const prompt = `You are an expert GTD (Getting Things Done) organization engine and coach.
-The user has a list of tasks in their Inbox:
+The user has a batch of ${inboxTasks.length} tasks in their Inbox:
 ${JSON.stringify(inboxTasks.map(t => ({ id: t.id, text: t.text })))}
 
 Here is the list of existing projects:
 ${JSON.stringify(existingProjects)}
 
+CRITICAL INSTRUCTION FOR CATEGORIZATION:
+You have a rich context of 30+ inbox tasks. Review ALL of them comprehensively to identify shared themes, long-term goals, or natural domain groupings.
+- Do NOT create fragmented single-task projects. Group tasks that belong together into cohesive, well-named projects.
+- Prefer assigning tasks to existing projects when relevant.
+- Only create a new project when a group of tasks clearly warrants a new project or goal.
+- If a task is truly a standalone quick action that does not belong to any project, leave its projectId as null.
+
 Your goal is to perform TWO steps for EACH task in the Inbox:
 1. Clarify/Elaborate: Rewrite the task title/text to make it highly actionable and clear, add detailed notes/context, and break it down into clear, small, sequential subtasks. Keep each rewritten task title concise (under 80 characters) and in the same language as the task.
 2. Organize: Decide where the task belongs.
    - If it fits under one of the existing projects, select the most appropriate existing project's ID.
-   - If it does not fit any existing project, decide if a new project should be created. If so, specify the new project's name. (You can also decide if this new project should be nested as a sub-project under an existing project, in which case specify the parent project ID).
+   - If it does not fit any existing project, decide if a new project should be created. Group related tasks under the same new project. If so, specify the new project's name. (You can also decide if this new project should be nested as a sub-project under an existing project, in which case specify the parent project ID).
    - If it does not belong in any project, set projectId to null.
 
 You must output your response in JSON format matching this schema:

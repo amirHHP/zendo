@@ -184,23 +184,33 @@ export function TaskDetails({
         </div>
 
         {/* AI Action buttons for single task */}
-        <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
-          <button
-            className="btn-primary"
-            onClick={() => onElaborateTask(task.id)}
-            disabled={isElaborating || isOrganizing}
-            style={{ flex: 1 }}
-          >
-            {isElaborating ? '...' : '✨ Elaborate'}
-          </button>
-          <button
-            className="btn-primary"
-            onClick={() => onOrganizeTask(task.id)}
-            disabled={isElaborating || isOrganizing}
-            style={{ flex: 1 }}
-          >
-            {isOrganizing ? '...' : '📂 Organize'}
-          </button>
+        <div className="task-ai-actions-section">
+          <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: 600 }}>
+            دستیار هوش مصنوعی (AI)
+          </label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              className="btn-primary"
+              onClick={() => onElaborateTask(task.id)}
+              disabled={isElaborating || isOrganizing}
+              title="شفاف‌سازی عنوان تسک، افزودن نکات راهنما و خرد کردن به زیرتسک‌های گام‌به‌گام با هوش مصنوعی"
+              style={{ flex: 1, fontSize: '11px', padding: '7px 8px' }}
+            >
+              {isElaborating ? 'در حال بسط دادن...' : '✨ شفاف‌سازی و خرد کردن'}
+            </button>
+            <button
+              className="btn-primary"
+              onClick={() => onOrganizeTask(task.id)}
+              disabled={isElaborating || isOrganizing}
+              title="تشخیص هوشمند پروژه مناسب برای این تسک و انتقال خودکار به آن"
+              style={{ flex: 1, fontSize: '11px', padding: '7px 8px' }}
+            >
+              {isOrganizing ? 'در حال انتقال...' : '📂 انتقال به پروژه'}
+            </button>
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '6px', lineHeight: '1.4' }}>
+            ✨ <strong>بسط (Elaborate):</strong> ساخت زیرتسک و یادداشت | 📂 <strong>سازماندهی (Organize):</strong> قرار دادن در پروژه مرتبط
+          </div>
         </div>
       </div>
     </aside>

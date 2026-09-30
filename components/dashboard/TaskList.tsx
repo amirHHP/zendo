@@ -41,7 +41,10 @@ export function TaskList({
     return timeB - timeA;
   });
 
-  const hasIncompleteInboxTasks = isInbox && tasks.some((t) => !t.completed);
+  const incompleteInboxTasks = isInbox ? tasks.filter((t) => !t.completed) : [];
+  const incompleteTasksCount = incompleteInboxTasks.length;
+  const hasIncompleteInboxTasks = isInbox && incompleteTasksCount > 0;
+  const canOrganize = incompleteTasksCount >= 30;
 
   return (
     <div className="list-container">
@@ -53,19 +56,46 @@ export function TaskList({
               className="btn-primary"
               onClick={onElaborateInbox}
               disabled={isElaboratingInbox || isOrganizingInbox}
+              title="شفاف‌سازی و عملیاتی کردن عنوان تسک‌ها، افزودن توضیحات کاربردی و تقسیم به زیرتسک‌های مرحله‌به‌مرحله با هوش مصنوعی"
             >
-              {isElaboratingInbox ? 'در حال بسط دادن...' : 'Elaborate'}
+              {isElaboratingInbox ? 'در حال بسط دادن...' : '✨ شفاف‌سازی (Elaborate)'}
             </button>
             <button
               className="btn-primary"
               onClick={onOrganizeInbox}
-              disabled={isElaboratingInbox || isOrganizingInbox}
+              disabled={isElaboratingInbox || isOrganizingInbox || !canOrganize}
+              title={
+                canOrganize
+                  ? 'دسته‌بندی هوشمند تسک‌های اینباکس در پروژه‌های مناسب بر اساس موضوع و کانتکست کارهای شما'
+                  : `برای دسته‌بندی دقیق، نیاز به حداقل ۳۰ تسک در اینباکس است تا هوش مصنوعی کانتکست کافی برای دسته‌بندی داشته باشد (${incompleteTasksCount} از ۳۰ تسک)`
+              }
             >
-              {isOrganizingInbox ? 'در حال سازماندهی...' : 'Organize'}
+              {isOrganizingInbox
+                ? 'در حال سازماندهی...'
+                : canOrganize
+                ? '📂 دسته‌بندی در پروژه‌ها (Organize)'
+                : `📂 دسته‌بندی (${incompleteTasksCount}/30)`}
             </button>
           </div>
         )}
       </div>
+
+      {isInbox && hasIncompleteInboxTasks && (
+        <div className="inbox-ai-guide">
+          <div className="inbox-ai-guide-item">
+            <span className="guide-icon">✨</span>
+            <div>
+              <strong>شفاف‌سازی (Elaborate):</strong> هوش مصنوعی عناوین را عملیاتی کرده، توضیحات راهنما می‌افزاید و تسک‌ها را به زیرتسک‌های کوچک تقسیم می‌کند تا شروع کار آسان شود.
+            </div>
+          </div>
+          <div className="inbox-ai-guide-item">
+            <span className="guide-icon">📂</span>
+            <div>
+              <strong>دسته‌بندی (Organize):</strong> هوش مصنوعی تسک‌ها را بر اساس موضوع در پروژه‌های مناسب قرار می‌دهد. (برای ارسال کانتکست مناسب و جلوگیری از دسته‌بندی اشتباه، با رسیدن به <strong>۳۰ تسک</strong> فعال می‌شود: <span className="inbox-ai-guide-badge">{incompleteTasksCount}/30</span>)
+            </div>
+          </div>
+        </div>
+      )}
 
       {sortedTasks.length === 0 ? (
         <div className="help-text" style={{ padding: '30px 10px', textAlign: 'center' }}>
