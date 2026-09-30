@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'کلید API مشخص نشده است.' }, { status: 400 });
     }
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}&pageSize=100`);
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       return NextResponse.json({ error: err.error?.message || response.statusText }, { status: response.status });
@@ -29,12 +29,22 @@ export async function POST(req: Request) {
 
     const data = await response.json();
     const models = (data.models || [])
-      .filter((m: any) => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+      .filter((m: any) => 
+        m.supportedGenerationMethods && 
+        m.supportedGenerationMethods.includes('generateContent') &&
+        !m.name.includes('gemini-2.5-flash') // Deprecated model (404)
+      )
       .sort((a: any, b: any) => {
+        const isLiteA = a.name.toLowerCase().includes('lite');
+        const isLiteB = b.name.toLowerCase().includes('lite');
+        if (isLiteA && !isLiteB) return -1;
+        if (!isLiteA && isLiteB) return 1;
+
         const isFlashA = a.name.toLowerCase().includes('flash');
         const isFlashB = b.name.toLowerCase().includes('flash');
         if (isFlashA && !isFlashB) return -1;
         if (!isFlashA && isFlashB) return 1;
+
         return a.displayName.localeCompare(b.displayName);
       });
 

@@ -24,7 +24,11 @@ export function SettingsModal({
   isPro,
 }: SettingsModalProps) {
   const [apiKey, setApiKey] = useState(settings.apiKey || '');
-  const [apiModel, setApiModel] = useState(settings.apiModel || 'gemini-2.5-flash');
+  const [apiModel, setApiModel] = useState(
+    settings.apiModel && settings.apiModel !== 'gemini-2.5-flash'
+      ? settings.apiModel
+      : 'gemini-flash-lite-latest'
+  );
   const [models, setModels] = useState<GeminiModelInfo[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -33,7 +37,11 @@ export function SettingsModal({
   useEffect(() => {
     if (isOpen) {
       setApiKey(settings.apiKey || '');
-      setApiModel(settings.apiModel || 'gemini-2.5-flash');
+      setApiModel(
+        settings.apiModel && settings.apiModel !== 'gemini-2.5-flash'
+          ? settings.apiModel
+          : 'gemini-flash-lite-latest'
+      );
       setStatusMsg(null);
     }
   }, [isOpen, settings]);
@@ -177,10 +185,11 @@ export function SettingsModal({
                 })
               ) : (
                 <>
-                  <option value="gemini-2.5-flash">Gemini 2.5 Flash (پیشنهادی - سریع)</option>
-                  <option value="gemini-2.5-pro">Gemini 2.5 Pro (پیشرفته - تحلیلی)</option>
-                  <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                  <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                  <option value="gemini-flash-lite-latest">Gemini Flash-Lite Latest (پیشنهادی - فوق‌العاده سریع و بهینه)</option>
+                  <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                  <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                  <option value="gemini-flash-latest">Gemini Flash Latest</option>
+                  <option value="gemini-pro-latest">Gemini Pro Latest</option>
                 </>
               )}
             </select>

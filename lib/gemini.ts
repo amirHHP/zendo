@@ -28,7 +28,10 @@ export async function resolveGeminiKey(userId: string): Promise<{
 
   const customKey = settings?.apiKey?.trim();
   const centralKey = process.env.GEMINI_API_KEY?.trim();
-  const model = settings?.apiModel || 'gemini-2.5-flash';
+  let model = settings?.apiModel || 'gemini-flash-lite-latest';
+  if (model === 'gemini-2.5-flash' || model === 'gemini-2.5-flash-lite') {
+    model = 'gemini-flash-lite-latest';
+  }
 
   if (customKey) {
     return { apiKey: customKey, model, isCustomKey: true };
